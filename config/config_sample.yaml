@@ -1,0 +1,45 @@
+general_config:
+  id: "Must be an unique ID" # 本机的唯一ID，用于生成每次连接的UUID
+  log_level: debug # 日志量从高到低 "debug" "info" "error" "none" 日常使用推荐设置为info或者error
+  log_file: "/path/to/your/log_file" # 日志的文件名，实际使用时会自动加上 .YYYYMMDD 的后缀
+  defence_settings: # 抵抗恶意请求相关设置
+    stat_seconds: 300 # 对每个客户端IP统计最近多少时间内的可疑/恶意请求总数
+    bad_req_limit: 5 # 在统计时间范围内达到多少次的恶意请求之后ban IP
+    ban_list_file: "/path/to/your/banned/IP/list" # banned IP列表保存文件名，可以不配置
+next_nodes: # 下一跳节点设置
+  node1: # 节点的名称
+    host: www.xxx.com # 节点地址可以是IP(v4 or v6)，也可以是域名
+    port: 12345
+    protocol: dynec_tunnel # 下一跳节点使用的监听协议
+    psk: G+39&*hjfI()E:L$f0 # 加密协议必须配置预设key
+    dynamic_iv_interval: 60 # dynec_*协议族必须配置动态IV刷新时间
+  node2:
+    host: www.yyy.com
+    port: 2233
+    protocol: socks5 # 也可以支持socks4a协议，但是socks4a无法完成TCP.BIND和UDP穿透请求
+route_conf: # 路由表配置
+  rules: # 规则列表：每一条规则可以是
+    - host_pattern: "*.aaa.com" # 目标地址支持通配符匹配
+      exit_tunnel: 1 # 这条规则的动作是离开隧道，直接连接目标主机
+      bind_addr: "123.231.123.213" # 对TCP.BIND和UDP穿透请求，需要指定绑定的本机IP
+      bind_port_base: 55555 # 以及本机绑定端口的起始端口
+    - host_pattern: "*.bbb.com"
+      next_nodes: # 这条规则列出了一组下一跳节点名称
+        - node1 # 所以满足这条规则的连接就会从配置的列表里随机选取一个隧道节点进行连接
+        - node2
+  default: # 全局路由表配置必须有一个默认配置，可以是离开隧道，也可以是继续连接其他隧道节点
+    exit_tunnel: 1
+    bind_addr: "123.231.123.213" # 对TCP.BIND和UDP穿透请求，需要指定绑定的本机IP
+    bind_port_base: 55555 # 以及本机绑定端口的起始端口
+services: # 本地服务配置
+  svc1: # 每一个本地监听端口都是一个“本地服务”
+    host: "0.0.0.0" # 监听的IP
+    port: 14515 # 监听的端口
+    protocol: dynec_tunnel # 使用的监听协议
+    psk: DFJ89045f5JK./*(&$%>
+    dynamic_iv_interval: 60
+    route_conf: # [可选配置] 和全局的路由配置写法一样，只不过可以不用定义default
+  svc2:
+    host: "::0" # 监听IP也支持IPv6
+    port: 54321
+    protocol: socks # socks监听协议同时支持socks4/socks4a/socks5

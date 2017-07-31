@@ -8,7 +8,7 @@ Command line interface program of NoirSocks
 
 After cloning NoirSocks-Cli's repository, you must do :
 
-     $ git submodule init
+     $ git submodule update --init
 
 to checkout NoirSocks-Core.
 
